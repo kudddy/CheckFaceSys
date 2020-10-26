@@ -5,10 +5,12 @@ from typing import AsyncIterable, Mapping
 
 from aiohttp import PAYLOAD_REGISTRY
 from aiohttp.web_app import Application
-from aiohttp_apispec import setup_aiohttp_apispec
-from payloads import AsyncGenJSONListPayload, JsonPayload
+from aiohttp_apispec import setup_aiohttp_apispec, validation_middleware
 
 from handlers import HANDLERS
+from middleware import error_middleware, handle_validation_error
+from payloads import AsyncGenJSONListPayload, JsonPayload
+from utils.pg import setup_pg
 
 api_address = "0.0.0.0"
 api_port = 8081
@@ -26,9 +28,9 @@ def create_app() -> Application:
     # TODO добавить middlewares
     app = Application(
         client_max_size=MAX_REQUEST_SIZE
+        # middlewares=[error_middleware, validation_middleware]
     )
-
-    # TODO Добавить подключение к базе данных
+    app.cleanup_ctx.append(setup_pg)
 
     # Регистрация обработчика
     for handler in HANDLERS:

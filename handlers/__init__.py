@@ -1,3 +1,4 @@
 from .checktoken import CheckToken
+from .createtoken import CreateToken
 
-HANDLERS = (CheckToken, )
+HANDLERS = (CheckToken, CreateToken)

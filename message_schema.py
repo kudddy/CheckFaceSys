@@ -8,7 +8,7 @@
 from datetime import date
 
 from marshmallow import Schema
-from marshmallow.fields import Str
+from marshmallow.fields import Str, Bool
 
 
 class CheckTokenReq(Schema):
