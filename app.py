@@ -8,7 +8,7 @@ from aiohttp.web_app import Application
 from aiohttp_apispec import setup_aiohttp_apispec, validation_middleware
 
 from handlers import HANDLERS
-from middleware import error_middleware, handle_validation_error
+from middleware import error_middleware, handle_validation_error, check_token_middleware
 from payloads import AsyncGenJSONListPayload, JsonPayload
 from utils.pg import setup_pg
 
@@ -25,10 +25,11 @@ def create_app() -> Application:
     """
     Создает экземпляр приложения, готового к запуску
     """
-    # TODO добавить middlewares
+    # TODO добавить middlewares для вадидации полей сообщений
     app = Application(
-        client_max_size=MAX_REQUEST_SIZE
-        # middlewares=[error_middleware, validation_middleware]
+        client_max_size=MAX_REQUEST_SIZE,
+        middlewares=[check_token_middleware]
+
     )
     app.cleanup_ctx.append(setup_pg)
 

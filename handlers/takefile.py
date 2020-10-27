@@ -13,7 +13,7 @@ from .query import CHECK_TOKEN
 
 
 class UploadFile(BaseView):
-    URL_PATH = r'/upload_file/{token}/'
+    URL_PATH = r'/{token}/upload_file'
 
     @property
     def token(self):

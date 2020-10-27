@@ -1,15 +1,13 @@
 from aiohttp.web_response import Response
 from aiohttp_apispec import docs, request_schema
 
-from db.schema import all_tokens
-from message_schema import CheckTokenReq
 
 from .base import BaseView
-from .query import CHECK_TOKEN
+from message_schema import CheckTokenReq
 
 
 class CheckToken(BaseView):
-    URL_PATH = r'/token_status/{token}'
+    URL_PATH = r'/{token}/token_status'
 
     @property
     def token(self):
@@ -20,15 +18,6 @@ class CheckToken(BaseView):
     async def get(self):
         # TODO по токену нужна дополнительная информация сколько и какие идентификаторы моделей присутствуют в системе
         # Валиден не валиден
+        # # TODO валидация ответа
 
-        query = CHECK_TOKEN.where(all_tokens.c.token == self.token)
-
-        result = await self.pg.fetch(query)
-
-        if len(result) > 0:
-            token_status = True
-        else:
-            token_status = False
-
-        # TODO валидация ответа
-        return Response(body={'token_status': token_status})
+        return Response(body={'token_status': True})

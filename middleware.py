@@ -3,14 +3,17 @@ from http import HTTPStatus
 from typing import Mapping, Optional
 
 from aiohttp.web_exceptions import (
-    HTTPBadRequest, HTTPException, HTTPInternalServerError,
+    HTTPBadRequest, HTTPException, HTTPInternalServerError, HTTPForbidden
 )
+from aiohttp.web_response import Response
 from aiohttp.web_middlewares import middleware
 from aiohttp.web_request import Request
 from marshmallow import ValidationError
 
 from payloads import JsonPayload
 
+from db.schema import all_tokens
+from handlers.query import CHECK_TOKEN
 
 log = logging.getLogger(__name__)
 
@@ -69,3 +72,22 @@ async def error_middleware(request: Request, handler):
         # HTTP ответа и могут случайно раскрыть внутреннюю информацию.
         log.exception('Unhandled exception')
         raise format_http_error(HTTPInternalServerError)
+
+
+@middleware
+async def check_token_middleware(request: Request, handler):
+    # TODO очень грязно, возможно стоит избавиться
+    if request.path == "/create_token":
+        return await handler(request)
+    # TODO возможно стоит использовать aiohttp_security
+    pg = request.app['pg']
+
+    request.match_info.get('token')
+    query = CHECK_TOKEN.where(all_tokens.c.token == request.match_info.get('token'))
+
+    result = await pg.fetch(query)
+
+    if len(result) > 0:
+        return await handler(request)
+    else:
+        raise HTTPForbidden
