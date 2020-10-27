@@ -1,13 +1,11 @@
+import uuid
 from aiohttp.web_response import Response
 from aiohttp_apispec import docs
-import uuid
+
 
 from db.schema import all_tokens
 
 from .base import BaseView
-
-# TODO должны получать из базы данных
-VALID_TOKEN = ['123', '2222']
 
 
 class CreateToken(BaseView):
@@ -15,6 +13,7 @@ class CreateToken(BaseView):
 
     @docs(summary="Создание токена для пользователя")
     async def get(self):
+        # TODO должна быть какая нибудь аутентификация (причем быстрая)
         user_uid = uuid.uuid4().hex
 
         query = all_tokens.insert().values((user_uid,))

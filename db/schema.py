@@ -25,5 +25,7 @@ metadata = MetaData(naming_convention=convention)
 all_tokens = Table(
     'tokens',
     metadata,
-    Column('token', String)
+    Column('token', String),
+    Column('upload_date', Date),
+    Column('model_uid', String)
 )

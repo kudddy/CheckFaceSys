@@ -36,6 +36,11 @@ def downgrade():
 alembic upgrade head
 ```
 
+## Запуск rabbit для Dramatiq
+```
+docker run -p 15672:15672 -p 5672:5672 -d --hostname my-rabbit --name some-rabbit rabbitmq:3-management
+```
+
 ## Проблемы
 При установке face recognition требуется дополнительно установить пакет cmake, который
 почему то не входит в список зависимостей фреймворка
