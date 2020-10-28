@@ -27,7 +27,6 @@ class UploadFile(BaseView):
         model_uid = uuid.uuid4().hex
 
         try:
-
             reader = await self.request.multipart()
             # /!\ Don't forget to validate your inputs /!\
 
@@ -53,7 +52,6 @@ class UploadFile(BaseView):
                                   }})
 
         try:
-
             query = all_tokens.insert().values((self.token, datetime.now(), model_uid))
             await self.pg.fetch(query)
         except Exception as e:

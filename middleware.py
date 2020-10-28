@@ -88,6 +88,8 @@ async def check_token_middleware(request: Request, handler):
     result = await pg.fetch(query)
 
     if len(result) > 0:
+        print('лолол')
         return await handler(request)
     else:
+        print('мы тут')
         raise HTTPForbidden

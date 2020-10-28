@@ -2,6 +2,9 @@ aiohttp~=3.7.1
 aiohttp_apispec
 asyncpg~=0.21.0
 marshmallow~=3.8.0
-asyncpgsa
-sqlalchemy
+asyncpgsa~=0.26.3
+sqlalchemy~=1.3.20
 psycopg2-binary
+alembic~=1.4.3
+numpy~=1.19.2
+aiomcache~=0.6.0
