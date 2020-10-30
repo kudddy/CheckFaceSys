@@ -21,12 +21,11 @@ class UploadFile(BaseView):
 
     @docs(summary="Загрузка файла")
     async def get(self):
-        # TODO 1) добавить запись уникального идентификатора и присвоение уникально идентификатора будущей модели
-        # записать все в базу + проверка на токена на валидность
 
         model_uid = uuid.uuid4().hex
 
         try:
+            # TODO привести в порядок
             reader = await self.request.multipart()
             # /!\ Don't forget to validate your inputs /!\
 
@@ -46,8 +45,8 @@ class UploadFile(BaseView):
         except Exception as e:
             print(e)
             return Response(body={"MESSAGE_NAME": "FILE_UPLOAD_STATUS",
-                                  "Status": "UPLOAD_FAIL",
-                                  "Payload": {
+                                  "STATUS": "UPLOAD_FAIL",
+                                  "payload": {
                                       "description": str(e)
                                   }})
 
@@ -57,14 +56,14 @@ class UploadFile(BaseView):
         except Exception as e:
             print(e)
             return Response(body={"MESSAGE_NAME": "FILE_UPLOAD_STATUS",
-                                  "Status": "DB_FAIL",
-                                  "Payload": {
+                                  "STATUS": "DB_FAIL",
+                                  "payload": {
                                       "description": str(e)
                                   }})
 
         return Response(body={"MESSAGE_NAME": "FILE_UPLOAD_STATUS",
-                              "Status": "OK",
-                              "Payload": {
+                              "STATUS": "OK",
+                              "payload": {
                                   "UID_MODEL": model_uid,
                                   "description": filename
                               }})

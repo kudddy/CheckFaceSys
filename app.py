@@ -1,4 +1,6 @@
 import logging
+from os import listdir
+from os.path import join
 
 from types import AsyncGeneratorType, MappingProxyType
 from typing import AsyncIterable, Mapping
@@ -14,7 +16,9 @@ from handlers import HANDLERS
 from middleware import error_middleware, handle_validation_error, check_token_middleware
 from payloads import AsyncGenJSONListPayload, JsonPayload
 from utils.pg import setup_pg
+from helper import Pickler
 
+ENCODERS_PATH = 'facedecoder/temp/encoders'
 api_address = "0.0.0.0"
 api_port = 8081
 
@@ -22,6 +26,31 @@ MEGABYTE = 1024 ** 2
 MAX_REQUEST_SIZE = 70 * MEGABYTE
 
 log = logging.getLogger(__name__)
+
+pickler = Pickler()
+
+
+class EncoderManager:
+    def __init__(self):
+        self.pickler = Pickler()
+        self.encoders = {}
+        for encoder in listdir(ENCODERS_PATH):
+            try:
+                self.encoders[encoder] = self.pickler.sync_pickler(join(ENCODERS_PATH, encoder))
+            except:
+                pass
+
+    def get_encoder_by_uid(self, uid: str) -> dict:
+        return self.encoders[uid]
+
+    def update_encoder_by_uid(self, uid: str, encoder: dict) -> None:
+        self.encoders[uid] = encoder
+
+    def check_key(self, uid: str) -> bool:
+        if uid in self.encoders:
+            return True
+        else:
+            return False
 
 
 class CacheManager:
@@ -43,12 +72,12 @@ def create_app() -> Application:
     app = Application(
         client_max_size=MAX_REQUEST_SIZE,
         middlewares=[check_token_middleware]
-
     )
     app.cleanup_ctx.append(setup_pg)
 
     # регестрируем менеджер кеша
     app['cache'] = CacheManager()
+    app['encoders'] = EncoderManager()
 
     # Регистрация обработчика
     for handler in HANDLERS:
