@@ -40,8 +40,8 @@ class PredictionHandler(BaseView):
         check_update = await self.request.app['cache'].get(b'check_flag')
 
         if check_update.decode() == self.encoder_uid:
-            # TODO блокировка
-            new_encoder = self.request.app['encoders'].pickler.sync_pickler(
+            print("обновились")
+            new_encoder = await self.request.app['encoders'].pickler.async_unpickler(
                 os.path.join(ENCODER_PATH, self.encoder_uid)
             )
             self.request.app['encoders'].update_encoder_by_uid(
