@@ -1,4 +1,4 @@
-from .encoder import get_encoder
+from .encoder import get_encoder, extract_zip
 from os.path import join
 from time import sleep
 # from app import CacheManager
@@ -7,6 +7,7 @@ import aiomcache
 
 ENCODER_PATH = "facedecoder/temp/encoders"
 IMAGE_PATH = "facedecoder/temp/image"
+ZIP_PATH = "facedecoder/temp/zip"
 SLEEP_TIME = 2
 
 # memcached = CacheManager()
@@ -21,30 +22,34 @@ loop = asyncio.get_event_loop()
 
 mc = aiomcache.Client("127.0.0.1", 11211, loop=loop)
 
+
 async def start_pulling():
-    get = True
+    # TODO добавить техничесую ифнормацию
     while True:
-        # тут читаем из memcached на предмет обновления
-        name = "8897ed22723843758becd25e20e57970"
-
         # memcached.cache.get(b"update")
-
-        if get:
-            get_encoder(join(IMAGE_PATH, name), join(ENCODER_PATH, name))
-            get = False
-            print("зашли и декодировали фото ")
+        name_model = await mc.get(b"update")
+        if name_model != b"false":
+            if name_model is not None:
+                name_model = name_model.decode()
+                extract_zip(join(ZIP_PATH, name_model), IMAGE_PATH)
+                get_encoder(join(IMAGE_PATH, name_model), join(ENCODER_PATH, name_model))
+                await mc.set(b"update", b"false")
+                await mc.set(b"check_flag", name_model.encode())
+                print("зашли и декодировали фото ")
             # положили в в memcached
-
 
         sleep(SLEEP_TIME)
 
 
+
+
+
 async def set_test():
     print('тут')
-    await mc.set(b"check_flag", b"8897ed22723843758becd25e20e57970")
-    a = await mc.get(b"check_flag")
-    print(a)
 
-    print('йо')
+    # a = await mc.get(b"check_flag")
+    await mc.set(b"update", b"false")
+    print("лолол")
 
-loop.run_until_complete(set_test())
+
+loop.run_until_complete(start_pulling())

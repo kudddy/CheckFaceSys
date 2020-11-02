@@ -23,24 +23,11 @@ class PredictionHandler(BaseView):
 
     @docs(summary="Предикт по фото")
     async def get(self):
-        # проверяем в кэше есть ли в memcached (на предмет обновления для внутренненого словаря с энкодерами)
-        # await self.request.app['cache'].set(b'check_flag', b'test')
-
-        # check_update = await self.request.app['cache'].get(b'testkey')
-        #
-        # if check_update:
-        #     # TODO тут мы обновляем словарь нашего энкодера
-        #     # словарь нужно добавить в requests
-        #     pass
-
-        # запрос с payload
-
-        # проверяем есть ли у очереди сообщение для encoder_uid
 
         check_update = await self.request.app['cache'].get(b'check_flag')
 
         if check_update.decode() == self.encoder_uid:
-            print("обновились")
+            print('зашли сюда')
             new_encoder = await self.request.app['encoders'].pickler.async_unpickler(
                 os.path.join(ENCODER_PATH, self.encoder_uid)
             )
@@ -48,13 +35,9 @@ class PredictionHandler(BaseView):
                 self.encoder_uid, new_encoder
             )
 
-            # после обновления присваеваем значение  false флагу
-
             await self.request.app['cache'].set(b'check_flag', b'false')
 
         if self.request.app['encoders'].check_key(self.encoder_uid):
-
-            # TODO проверка есть в кэше нужный
 
             reader = await self.request.multipart()
             # /!\ Don't forget to validate your inputs /!\

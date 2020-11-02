@@ -11,6 +11,8 @@ from message_schema import CheckTokenReq
 from .base import BaseView
 from .query import CHECK_TOKEN
 
+ZIP_PATH = "facedecoder/temp/zip"
+
 
 class UploadFile(BaseView):
     URL_PATH = r'/{token}/upload_file'
@@ -31,17 +33,24 @@ class UploadFile(BaseView):
 
             archive = await reader.next()
 
-            filename = archive.filename
+            if not archive.filename.endswith("zip"):
+                return Response(body={"MESSAGE_NAME": "FILE_UPLOAD_STATUS",
+                                      "STATUS": "UPLOAD_FAIL",
+                                      "payload": {
+                                          "description": "wrong file format, try loading a different format"
+                                      }})
 
             # You cannot rely on Content-Length if transfer is chunked.
             size = 0
-            with open(os.path.join('test/', filename), 'wb') as f:
+            with open(os.path.join(ZIP_PATH, model_uid), 'wb') as f:
                 while True:
                     chunk = await archive.read_chunk()  # 8192 bytes by default.
                     if not chunk:
                         break
                     size += len(chunk)
                     f.write(chunk)
+
+            await self.request.app['cache'].set(b'update', model_uid.encode())
         except Exception as e:
             print(e)
             return Response(body={"MESSAGE_NAME": "FILE_UPLOAD_STATUS",
@@ -65,5 +74,5 @@ class UploadFile(BaseView):
                               "STATUS": "OK",
                               "payload": {
                                   "UID_MODEL": model_uid,
-                                  "description": filename
+                                  "description": archive.filename
                               }})
