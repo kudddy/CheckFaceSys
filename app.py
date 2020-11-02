@@ -25,7 +25,10 @@ api_port = 8081
 MEGABYTE = 1024 ** 2
 MAX_REQUEST_SIZE = 70 * MEGABYTE
 
+logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
+
+log.setLevel(logging.DEBUG)
 
 pickler = Pickler()
 

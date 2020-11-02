@@ -2,11 +2,11 @@ import io
 import uuid
 import os
 from aiohttp.web_response import Response
-from aiohttp_apispec import docs, request_schema
+from aiohttp_apispec import docs, response_schema
 from datetime import datetime
 
 from db.schema import all_tokens
-from message_schema import CheckTokenReq
+from message_schema import UploadFileResp
 
 from .base import BaseView
 from .query import CHECK_TOKEN
@@ -21,7 +21,23 @@ class UploadFile(BaseView):
     def token(self):
         return str(self.request.match_info.get('token'))
 
-    @docs(summary="Загрузка файла")
+    @docs(summary="Загрузка файла",
+          tags=["Basic methods"],
+          description="Загрузка zip архива с фотографиями. На данный момент возможна загрузка только zip файла, "
+                      "где внутри лежит папка с именем Image в которой есть фотографии для обучения в формате jpg. "
+                      "Каждая фотография в названии должна иметь уникальный идентификатор который будет возвращать "
+                      "сервис в случай успешного обнаружения лица. Формат form-data.",
+          parameters=[{
+              'in': 'path',
+              'name': 'token',
+              'schema': {'type': 'string', 'format': 'uuid'},
+              'required': 'true',
+              'description': 'Значение для проверки валидности токена.'
+          }]
+          )
+    @response_schema(UploadFileResp,
+                     description="Возвращает статус обратки и уникальный идентификатор модели по которой в "
+                                 "дальнейшем будет производиться классификация.")
     async def get(self):
 
         model_uid = uuid.uuid4().hex
@@ -36,7 +52,8 @@ class UploadFile(BaseView):
             if not archive.filename.endswith("zip"):
                 return Response(body={"MESSAGE_NAME": "FILE_UPLOAD_STATUS",
                                       "STATUS": "UPLOAD_FAIL",
-                                      "payload": {
+                                      "PAYLOAD": {
+                                          "UID_MODEL": None,
                                           "description": "wrong file format, try loading a different format"
                                       }})
 
@@ -55,7 +72,8 @@ class UploadFile(BaseView):
             print(e)
             return Response(body={"MESSAGE_NAME": "FILE_UPLOAD_STATUS",
                                   "STATUS": "UPLOAD_FAIL",
-                                  "payload": {
+                                  "PAYLOAD": {
+                                      "UID_MODEL": None,
                                       "description": str(e)
                                   }})
 
@@ -66,13 +84,14 @@ class UploadFile(BaseView):
             print(e)
             return Response(body={"MESSAGE_NAME": "FILE_UPLOAD_STATUS",
                                   "STATUS": "DB_FAIL",
-                                  "payload": {
+                                  "PAYLOAD": {
+                                      "UID_MODEL": None,
                                       "description": str(e)
                                   }})
 
         return Response(body={"MESSAGE_NAME": "FILE_UPLOAD_STATUS",
                               "STATUS": "OK",
-                              "payload": {
+                              "PAYLOAD": {
                                   "UID_MODEL": model_uid,
                                   "description": archive.filename
                               }})

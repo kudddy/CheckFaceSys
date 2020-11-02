@@ -77,19 +77,23 @@ async def error_middleware(request: Request, handler):
 @middleware
 async def check_token_middleware(request: Request, handler):
     # TODO очень грязно, возможно стоит избавиться
-    if request.path == "/create_token":
-        return await handler(request)
-    # TODO возможно стоит использовать aiohttp_security
-    pg = request.app['pg']
+    print(request.path)
+    if request.path in ("/{token}/token_status", "/{token}/check_similarity/{encoder_uid}/",
+                        "/{token}/upload_file"):
 
-    request.match_info.get('token')
-    query = CHECK_TOKEN.where(all_tokens.c.token == request.match_info.get('token'))
+        # TODO возможно стоит использовать aiohttp_security
+        pg = request.app['pg']
 
-    result = await pg.fetch(query)
+        request.match_info.get('token')
+        query = CHECK_TOKEN.where(all_tokens.c.token == request.match_info.get('token'))
 
-    if len(result) > 0:
-        print('лолол')
-        return await handler(request)
+        result = await pg.fetch(query)
+
+        if len(result) > 0:
+            print('лолол')
+            return await handler(request)
+        else:
+            print('мы тут')
+            raise HTTPForbidden
     else:
-        print('мы тут')
-        raise HTTPForbidden
+        return await handler(request)
