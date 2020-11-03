@@ -5,15 +5,19 @@
 чтоды убедиться что обработчик возвращает данные в корректном формате.
 """
 
-from datetime import date
-
 from marshmallow import Schema
-from marshmallow.fields import Str, Nested
+from marshmallow.fields import Str, Nested, List
 
 
-class CheckTokenReq(Schema):
+class NameModelResp(Schema):
+    MODEL_UID_FIELD = Str()
+    MODEL_UID = Str()
+
+
+class CheckTokenResp(Schema):
     MESSAGE_NAME = Str()
     TOKEN_STATUS = Str()
+    NAME_MODELS = List(Nested(NameModelResp))
 
 
 class GetTokenPayload(Schema):

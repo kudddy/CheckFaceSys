@@ -1,4 +1,4 @@
-import io
+import logging
 import uuid
 import os
 from aiohttp.web_response import Response
@@ -9,9 +9,14 @@ from db.schema import all_tokens
 from message_schema import UploadFileResp
 
 from .base import BaseView
-from .query import CHECK_TOKEN
+
 
 ZIP_PATH = "facedecoder/temp/zip"
+
+logging.basicConfig(level=logging.DEBUG)
+log = logging.getLogger(__name__)
+
+log.setLevel(logging.DEBUG)
 
 
 class UploadFile(BaseView):
@@ -69,7 +74,8 @@ class UploadFile(BaseView):
 
             await self.request.app['cache'].set(b'update', model_uid.encode())
         except Exception as e:
-            print(e)
+            logging.debug("handler name - %r, message_name - %r, error decoding - %r",
+                          "UploadFile", "FILE_UPLOAD_STATUS", e)
             return Response(body={"MESSAGE_NAME": "FILE_UPLOAD_STATUS",
                                   "STATUS": "UPLOAD_FAIL",
                                   "PAYLOAD": {
@@ -81,7 +87,8 @@ class UploadFile(BaseView):
             query = all_tokens.insert().values((self.token, datetime.now(), model_uid))
             await self.pg.fetch(query)
         except Exception as e:
-            print(e)
+            logging.debug("handler name - %r, message_name - %r, error decoding - %r",
+                          "UploadFile", "FILE_UPLOAD_STATUS", e)
             return Response(body={"MESSAGE_NAME": "FILE_UPLOAD_STATUS",
                                   "STATUS": "DB_FAIL",
                                   "PAYLOAD": {

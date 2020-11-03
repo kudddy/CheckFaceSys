@@ -1,4 +1,5 @@
 import uuid
+import logging
 
 from aiohttp.web_response import Response
 from aiohttp_apispec import docs, response_schema
@@ -6,6 +7,11 @@ from aiohttp_apispec import docs, response_schema
 from db.schema import all_tokens
 from message_schema import GetTokenResp
 from .base import BaseView
+
+logging.basicConfig(level=logging.DEBUG)
+log = logging.getLogger(__name__)
+
+log.setLevel(logging.DEBUG)
 
 
 class CreateToken(BaseView):
@@ -37,8 +43,8 @@ class CreateToken(BaseView):
                 }
             })
         except Exception as e:
-            # TODO добавить логирование ошибок везде
-            print(e)
+            logging.debug("handler name - %r, message_name - %r, error decoding - %r",
+                          "CreateToken", "GET_TOKEN", e)
             return Response(body={
                 "MESSAGE_NAME": "GET_TOKEN",
                 "STATUS": "FAIL",

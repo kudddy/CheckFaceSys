@@ -1,17 +1,24 @@
+import logging
+import face_recognition
+import numpy as np
+import numpy
+import os
+
 from aiohttp.web_response import Response
 from aiohttp_apispec import docs, response_schema
 
-import face_recognition
-from io import BytesIO
-import numpy as np
 from PIL import Image
-import numpy
-import os
+from io import BytesIO
 
 from .base import BaseView
 from message_schema import PredictImageResp
 
 ENCODER_PATH = "facedecoder/temp/encoders"
+
+logging.basicConfig(level=logging.DEBUG)
+log = logging.getLogger(__name__)
+
+log.setLevel(logging.DEBUG)
 
 
 class PredictionHandler(BaseView):
@@ -107,6 +114,8 @@ class PredictionHandler(BaseView):
                     }
                 })
         except Exception as e:
+            logging.debug("handler name - %r, message_name - %r, error decoding - %r",
+                          "PredictionHandler", "PREDICT_PHOTO", e)
             return Response(body={
                 "MESSAGE_NAME": "PREDICT_PHOTO",
                 "STATUS": "FAIL",

@@ -1,8 +1,17 @@
-from aiohttp.web_response import Response
-from aiohttp_apispec import docs, request_schema, response_schema
+import logging
 
+from aiohttp.web_response import Response
+from aiohttp_apispec import docs, response_schema
+
+from db.schema import all_tokens
 from .base import BaseView
-from message_schema import CheckTokenReq
+from .query import GET_MODEL
+from message_schema import CheckTokenResp
+
+logging.basicConfig(level=logging.DEBUG)
+log = logging.getLogger(__name__)
+
+log.setLevel(logging.DEBUG)
 
 
 class CheckToken(BaseView):
@@ -23,14 +32,31 @@ class CheckToken(BaseView):
               'description': 'Значение для проверки валидности токена.'
           }]
           )
-    # @request_schema(CheckTokenReq())
-    @response_schema(CheckTokenReq(),
-                     description="Возвращает json с именем сообщения "
-                                 "и статусом валидности токена")
+    @response_schema(CheckTokenResp(),
+                     description="Возвращает json с именем сообщения"
+                                 ", статусом валидности токена и списком моделей.")
     async def get(self):
-        # TODO по токену нужна дополнительная информация сколько и какие идентификаторы моделей присутствуют в системе
-        # Валиден не валиден
-        # # TODO валидация ответа
+        try:
 
-        return Response(body={"MESSAGE_NAME": "CHECK_TOKEN",
-                              "TOKEN_STATUS": True})
+            query = GET_MODEL.where(all_tokens.c.token == self.token)
+
+            result = await self.pg.fetch(query)
+
+            return Response(body={"MESSAGE_NAME": "CHECK_TOKEN",
+                                  "STATUS": "FAIL",
+                                  "PAYLOAD": {
+                                      "TOKEN_STATUS": True,
+                                      "NAME_MODELS": result,
+                                      "description": None}
+                                  })
+
+        except Exception as e:
+            logging.debug("handler name - %r, message_name - %r, error decoding - %r",
+                          "CheckToken", "CHECK_TOKEN", e)
+            return Response(body={"MESSAGE_NAME": "CHECK_TOKEN",
+                                  "STATUS": "FAIL",
+                                  "PAYLOAD": {
+                                      "TOKEN_STATUS": None,
+                                      "NAME_MODELS": [],
+                                      "description": "Неизвестная runtime ошибка"}
+                                  })
