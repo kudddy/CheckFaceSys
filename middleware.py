@@ -77,7 +77,6 @@ async def error_middleware(request: Request, handler):
 @middleware
 async def check_token_middleware(request: Request, handler):
     # TODO очень грязно, возможно стоит избавиться
-    print(request.path)
     if request.path in ("/{token}/token_status", "/{token}/check_similarity/{encoder_uid}/",
                         "/{token}/upload_file"):
 
@@ -90,10 +89,8 @@ async def check_token_middleware(request: Request, handler):
         result = await pg.fetch(query)
 
         if len(result) > 0:
-            print('лолол')
             return await handler(request)
         else:
-            print('мы тут')
             raise HTTPForbidden
     else:
         return await handler(request)

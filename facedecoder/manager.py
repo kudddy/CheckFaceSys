@@ -1,16 +1,16 @@
+import logging
+
 from .encoder import get_encoder, extract_zip
 from os.path import join
-from time import sleep
-# from app import CacheManager
-import asyncio
-import aiomcache
 
 ENCODER_PATH = "facedecoder/temp/encoders"
 IMAGE_PATH = "facedecoder/temp/image"
 ZIP_PATH = "facedecoder/temp/zip"
 SLEEP_TIME = 2
+logging.basicConfig(level=logging.DEBUG)
+log = logging.getLogger(__name__)
 
-# memcached = CacheManager()
+log.setLevel(logging.DEBUG)
 
 
 # ловим сообщение что нужно обновлять из очередени что нужно обновлять
@@ -18,38 +18,16 @@ SLEEP_TIME = 2
 # в очереди по ключу будет сообщение насчет обновления данных(в значение будет идентификатор названия папки где лежит
 # zip архив)
 
-loop = asyncio.get_event_loop()
+def run_model_updater(name_model: str):
+    log.debug("Start create model - %r", name_model)
+    log.debug("Extract zip - %r", name_model)
 
-mc = aiomcache.Client("127.0.0.1", 11211, loop=loop)
+    extract_zip(join(ZIP_PATH, name_model), IMAGE_PATH)
 
+    log.debug("Done extract zip - %r", name_model)
+    log.debug("create encoders - %r", name_model)
 
-async def start_pulling():
-    # TODO добавить техничесую ифнормацию
-    while True:
-        # memcached.cache.get(b"update")
-        name_model = await mc.get(b"update")
-        if name_model != b"false":
-            if name_model is not None:
-                name_model = name_model.decode()
-                extract_zip(join(ZIP_PATH, name_model), IMAGE_PATH)
-                get_encoder(join(IMAGE_PATH, name_model), join(ENCODER_PATH, name_model))
-                await mc.set(b"update", b"false")
-                await mc.set(b"check_flag", name_model.encode())
-                print("зашли и декодировали фото ")
-            # положили в в memcached
+    result = get_encoder(join(IMAGE_PATH, name_model), join(ENCODER_PATH, name_model))
 
-        sleep(SLEEP_TIME)
-
-
-
-
-
-async def set_test():
-    print('тут')
-
-    # a = await mc.get(b"check_flag")
-    await mc.set(b"update", b"false")
-    print("лолол")
-
-
-loop.run_until_complete(start_pulling())
+    log.debug("done encoders - %r", name_model)
+    return result

@@ -6,17 +6,16 @@
 """
 
 from marshmallow import Schema
-from marshmallow.fields import Str, Nested, List
+from marshmallow.fields import Str, Nested, List, Bool
 
 
 class NameModelResp(Schema):
-    MODEL_UID_FIELD = Str()
     MODEL_UID = Str()
 
 
 class CheckTokenResp(Schema):
     MESSAGE_NAME = Str()
-    TOKEN_STATUS = Str()
+    TOKEN_STATUS = Bool()
     NAME_MODELS = List(Nested(NameModelResp))
 
 
@@ -27,7 +26,7 @@ class GetTokenPayload(Schema):
 
 class GetTokenResp(Schema):
     MESSAGE_NAME = Str()
-    STATUS = Str()
+    STATUS = Bool()
     PAYLOAD = Nested(
         GetTokenPayload
     )
@@ -40,7 +39,7 @@ class UploadFilePayload(Schema):
 
 class UploadFileResp(Schema):
     MESSAGE_NAME = Str()
-    STATUS = Str()
+    STATUS = Bool()
     PAYLOAD = Nested(
         UploadFilePayload
     )
@@ -53,7 +52,7 @@ class PredictImagePayload(Schema):
 
 class PredictImageResp(Schema):
     MESSAGE_NAME = Str()
-    STATUS = Str()
+    STATUS = Bool()
     PAYLOAD = Nested(
         PredictImagePayload
     )

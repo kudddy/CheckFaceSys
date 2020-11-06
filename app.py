@@ -8,6 +8,7 @@ from typing import AsyncIterable, Mapping
 from aiohttp import PAYLOAD_REGISTRY
 from aiohttp.web_app import Application
 from aiohttp_apispec import setup_aiohttp_apispec, validation_middleware
+from concurrent.futures.process import ProcessPoolExecutor
 
 import aiomcache
 import asyncio
@@ -16,7 +17,9 @@ from handlers import HANDLERS
 from middleware import error_middleware, handle_validation_error, check_token_middleware
 from payloads import AsyncGenJSONListPayload, JsonPayload
 from utils.pg import setup_pg
-from helper import Pickler
+from helper import Pickler, check_folder_in_path
+
+from facedecoder.manager import run_model_updater
 
 ENCODERS_PATH = 'facedecoder/temp/encoders'
 api_address = "0.0.0.0"
@@ -31,6 +34,8 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 pickler = Pickler()
+
+check_folder_in_path()
 
 
 class EncoderManager:
@@ -67,6 +72,42 @@ class CacheManager:
         return await asyncio.wait_for(self.cache.set(key, value), 0.1)
 
 
+async def task_for_executor(app, name_model: str):
+    loop = asyncio.get_event_loop()
+    result = await loop.run_in_executor(
+        app.process_pool,
+        run_model_updater, name_model
+    )
+    print("ok")
+    # обновляем енкодер
+    app['encoders'].update_encoder_by_uid(
+        name_model, result
+    )
+
+
+async def input_queue_listener(app):
+    while True:
+        name_model = await app.input_queue.get()
+        app.input_queue.task_done()
+        loop = asyncio.get_event_loop()
+        loop.create_task(task_for_executor(app, name_model))
+
+
+async def startup(app):
+    input_queue = asyncio.Queue()
+    app.process_pool = ProcessPoolExecutor(3)
+    app.input_queue = input_queue
+    loop = asyncio.get_event_loop()
+    loop.create_task(
+        input_queue_listener(app)
+    )
+
+
+async def shutdown(app):
+    app.listen_task.cancel()
+    app.process_pool.shutdown()
+
+
 def create_app() -> Application:
     """
     Создает экземпляр приложения, готового к запуску
@@ -77,6 +118,9 @@ def create_app() -> Application:
         middlewares=[check_token_middleware]
     )
     app.cleanup_ctx.append(setup_pg)
+
+    app.on_startup.append(startup)
+    app.on_shutdown.append(shutdown)
 
     # регестрируем менеджер кеша
     app['cache'] = CacheManager()

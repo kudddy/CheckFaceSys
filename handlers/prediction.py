@@ -2,7 +2,6 @@ import logging
 import face_recognition
 import numpy as np
 import numpy
-import os
 
 from aiohttp.web_response import Response
 from aiohttp_apispec import docs, response_schema
@@ -53,17 +52,6 @@ class PredictionHandler(BaseView):
                                                      "персонажа")
     async def get(self):
         try:
-            check_update = await self.request.app['cache'].get(b'check_flag')
-
-            if check_update.decode() == self.encoder_uid:
-                new_encoder = await self.request.app['encoders'].pickler.async_unpickler(
-                    os.path.join(ENCODER_PATH, self.encoder_uid)
-                )
-                self.request.app['encoders'].update_encoder_by_uid(
-                    self.encoder_uid, new_encoder
-                )
-
-                await self.request.app['cache'].set(b'check_flag', b'false')
 
             if self.request.app['encoders'].check_key(self.encoder_uid):
 
@@ -74,7 +62,7 @@ class PredictionHandler(BaseView):
                 # TODO отвалидировать ответ
                 if not archive.filename.endswith("jpg"):
                     return Response(body={"MESSAGE_NAME": "PREDICT_PHOTO",
-                                          "STATUS": "PREDICT_FAIL",
+                                          "STATUS": False,
                                           "PAYLOAD": {
                                               "result": None,
                                               "description": "wrong file format, try loading a different format"
@@ -99,7 +87,7 @@ class PredictionHandler(BaseView):
 
                 return Response(body={
                     "MESSAGE_NAME": "PREDICT_PHOTO",
-                    "STATUS": "OK",
+                    "STATUS": True,
                     "PAYLOAD": {
                         "result": result,
                         "description": "OK"
@@ -107,7 +95,7 @@ class PredictionHandler(BaseView):
             else:
                 return Response(body={
                     "MESSAGE_NAME": "PREDICT_PHOTO",
-                    "STATUS": "FAIL",
+                    "STATUS": False,
                     "PAYLOAD": {
                         "result": None,
                         "description": "there is no such model or the model is still being trained, try again later"
@@ -118,7 +106,7 @@ class PredictionHandler(BaseView):
                           "PredictionHandler", "PREDICT_PHOTO", e)
             return Response(body={
                 "MESSAGE_NAME": "PREDICT_PHOTO",
-                "STATUS": "FAIL",
+                "STATUS": False,
                 "PAYLOAD": {
                     "result": None,
                     "description": "unexpected runtime error"

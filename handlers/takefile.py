@@ -56,7 +56,7 @@ class UploadFile(BaseView):
 
             if not archive.filename.endswith("zip"):
                 return Response(body={"MESSAGE_NAME": "FILE_UPLOAD_STATUS",
-                                      "STATUS": "UPLOAD_FAIL",
+                                      "STATUS": False,
                                       "PAYLOAD": {
                                           "UID_MODEL": None,
                                           "description": "wrong file format, try loading a different format"
@@ -72,12 +72,13 @@ class UploadFile(BaseView):
                     size += len(chunk)
                     f.write(chunk)
 
-            await self.request.app['cache'].set(b'update', model_uid.encode())
+            # await self.request.app['cache'].set(b'update', model_uid.encode())
+            await self.request.app.input_queue.put(model_uid)
         except Exception as e:
             logging.debug("handler name - %r, message_name - %r, error decoding - %r",
                           "UploadFile", "FILE_UPLOAD_STATUS", e)
             return Response(body={"MESSAGE_NAME": "FILE_UPLOAD_STATUS",
-                                  "STATUS": "UPLOAD_FAIL",
+                                  "STATUS": False,
                                   "PAYLOAD": {
                                       "UID_MODEL": None,
                                       "description": str(e)
@@ -90,14 +91,14 @@ class UploadFile(BaseView):
             logging.debug("handler name - %r, message_name - %r, error decoding - %r",
                           "UploadFile", "FILE_UPLOAD_STATUS", e)
             return Response(body={"MESSAGE_NAME": "FILE_UPLOAD_STATUS",
-                                  "STATUS": "DB_FAIL",
+                                  "STATUS": False,
                                   "PAYLOAD": {
                                       "UID_MODEL": None,
                                       "description": str(e)
                                   }})
 
         return Response(body={"MESSAGE_NAME": "FILE_UPLOAD_STATUS",
-                              "STATUS": "OK",
+                              "STATUS": True,
                               "PAYLOAD": {
                                   "UID_MODEL": model_uid,
                                   "description": archive.filename

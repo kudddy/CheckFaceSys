@@ -1,5 +1,6 @@
 import pickle
 import aiofiles
+import os
 
 
 class Pickler:
@@ -34,3 +35,13 @@ class Pickler:
         """
         with open(filename, 'wb') as f:
             pickle.dump(obj, f)
+
+
+def check_folder_in_path():
+    path = 'facedecoder/temp'
+    i = 0
+    for temp in os.listdir(path):
+        if temp in ('encoders', 'image', 'zip'):
+            i += 1
+    if i != 3:
+        [os.makedirs(os.path.join(path, x)) for x in ('encoders', 'image', 'zip')]

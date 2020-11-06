@@ -43,7 +43,7 @@ class CheckToken(BaseView):
             result = await self.pg.fetch(query)
 
             return Response(body={"MESSAGE_NAME": "CHECK_TOKEN",
-                                  "STATUS": "FAIL",
+                                  "STATUS": True,
                                   "PAYLOAD": {
                                       "TOKEN_STATUS": True,
                                       "NAME_MODELS": result,
@@ -54,7 +54,7 @@ class CheckToken(BaseView):
             logging.debug("handler name - %r, message_name - %r, error decoding - %r",
                           "CheckToken", "CHECK_TOKEN", e)
             return Response(body={"MESSAGE_NAME": "CHECK_TOKEN",
-                                  "STATUS": "FAIL",
+                                  "STATUS": False,
                                   "PAYLOAD": {
                                       "TOKEN_STATUS": None,
                                       "NAME_MODELS": [],

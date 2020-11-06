@@ -83,7 +83,7 @@ class AsyncGenJSONListPayload(Payload):
 
         self.root_object = root_object
         super().__init__(value, content_type=content_type, encoding=encoding,
-                     *args, **kwargs)
+                         *args, **kwargs)
 
     async def write(self, writer):
         # Начало объекта

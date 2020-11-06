@@ -36,7 +36,7 @@ class CreateToken(BaseView):
 
             return Response(body={
                 "MESSAGE_NAME": "GET_TOKEN",
-                "STATUS": "OK",
+                "STATUS": True,
                 "PAYLOAD": {
                     "TOKEN": user_uid,
                     "description": "OK"
@@ -47,7 +47,7 @@ class CreateToken(BaseView):
                           "CreateToken", "GET_TOKEN", e)
             return Response(body={
                 "MESSAGE_NAME": "GET_TOKEN",
-                "STATUS": "FAIL",
+                "STATUS": False,
                 "PAYLOAD": {
                     "TOKEN": None,
                     "description": "unknown runtime error"
