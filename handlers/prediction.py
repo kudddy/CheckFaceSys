@@ -23,11 +23,15 @@ log.setLevel(logging.DEBUG)
 
 
 class PredictionHandler(BaseView):
-    URL_PATH = r'/{token}/check_similarity/{encoder_uid}/'
+    URL_PATH = r'/{token}/check_similarity/{encoder_uid}/{n}/'
 
     @property
     def encoder_uid(self):
         return str(self.request.match_info.get('encoder_uid'))
+
+    @property
+    def n(self):
+        return int(self.request.match_info.get('n'))
 
     @docs(summary="Предикт по фото", tags=["Basic methods"],
           description="Классификация входящего изображения. "
@@ -46,6 +50,13 @@ class PredictionHandler(BaseView):
                   'schema': {'type': 'string', 'format': 'uuid'},
                   'required': 'true',
                   'description': 'Уникальный идентификатор модели, которая обучена на датасете от клиента.'
+              },
+              {
+                  'in': 'path',
+                  'name': 'n',
+                  'schema': {'type': 'string', 'format': 'uuid'},
+                  'required': 'true',
+                  'description': 'Кол-во наиболее близких соседей'
               }
           ]
           )
@@ -74,9 +85,9 @@ class PredictionHandler(BaseView):
                 reader = await self.request.multipart()
                 # /!\ Don't forget to validate your inputs /!\
 
-                archive = await reader.next()
+                image = await reader.next()
                 # TODO отвалидировать ответ
-                if not archive.filename.endswith("jpg"):
+                if not image.filename.endswith("jpg"):
                     return Response(body={"MESSAGE_NAME": "PREDICT_PHOTO",
                                           "STATUS": False,
                                           "PAYLOAD": {
@@ -86,7 +97,7 @@ class PredictionHandler(BaseView):
 
                 arr = []
                 while True:
-                    chunk = await archive.read_chunk()  # 8192 bytes by default.
+                    chunk = await image.read_chunk()  # 8192 bytes by default.
                     if not chunk:
                         break
                     arr.append(chunk)
@@ -97,9 +108,10 @@ class PredictionHandler(BaseView):
                 encoder = self.request.app['encoders'].get_encoder_by_uid(self.encoder_uid)
                 # TODO выбарть между базой данных и face_distance
                 face_distances = face_recognition.face_distance(encoder['faces_encoders'], input_face_encode[0])
-                min_arg = numpy.argmin(face_distances)
 
-                result = encoder['faces_mapping'][min_arg + 1]
+                min_args = numpy.argsort(face_distances)[:self.n]
+
+                result = [encoder['faces_mapping'][x + 1] for x in min_args]
 
                 return Response(body={
                     "MESSAGE_NAME": "PREDICT_PHOTO",

@@ -45,8 +45,12 @@ class UploadFileResp(Schema):
     )
 
 
+class ImagePayloadList(Schema):
+    IMAGE_NAME = Str()
+
+
 class PredictImagePayload(Schema):
-    result = Str()
+    result = List(Nested(ImagePayloadList))
     description = Str()
 
 

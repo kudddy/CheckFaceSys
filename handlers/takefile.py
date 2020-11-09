@@ -54,7 +54,7 @@ class UploadFile(BaseView):
 
             archive = await reader.next()
 
-            if not archive.filename.endswith("zip"):
+            if archive.filename != "image.zip":
                 return Response(body={"MESSAGE_NAME": "FILE_UPLOAD_STATUS",
                                       "STATUS": False,
                                       "PAYLOAD": {
