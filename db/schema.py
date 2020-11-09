@@ -29,3 +29,12 @@ all_tokens = Table(
     Column('upload_date', Date),
     Column('model_uid', String)
 )
+
+
+done_encoders = Table(
+    'done_encoders',
+    metadata,
+    Column('token', String),
+    Column('encoders_uid', String)
+
+)

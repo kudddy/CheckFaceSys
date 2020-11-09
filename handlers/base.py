@@ -8,3 +8,11 @@ class BaseView(View):
     @property
     def pg(self) -> PG:
         return self.request.app['pg']
+
+    @property
+    def cache(self):
+        return self.request.app['cache']
+
+    @property
+    def encoders(self):
+        return self.request.app['encoders']

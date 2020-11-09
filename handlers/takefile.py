@@ -73,7 +73,7 @@ class UploadFile(BaseView):
                     f.write(chunk)
 
             # await self.request.app['cache'].set(b'update', model_uid.encode())
-            await self.request.app.input_queue.put(model_uid)
+            await self.request.app.input_queue.put((self.token, model_uid))
         except Exception as e:
             logging.debug("handler name - %r, message_name - %r, error decoding - %r",
                           "UploadFile", "FILE_UPLOAD_STATUS", e)

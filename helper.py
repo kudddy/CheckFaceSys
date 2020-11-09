@@ -7,12 +7,12 @@ class Pickler:
     def __init__(self):
         self.open = aiofiles.open
 
-    async def async_pickler(self, obj):
+    async def async_unpickler(self, obj):
         async with self.open('foo.pickle', 'wb') as f:
             pickled_foo = pickle.dumps(obj)
             await f.write(pickled_foo)
 
-    async def async_unpickler(self, path: str):
+    async def async_pickler(self, path: str):
         async with self.open(path, 'rb') as f:
             pickled_foo = await f.read()
 

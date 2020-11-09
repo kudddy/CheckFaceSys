@@ -18,16 +18,16 @@ log.setLevel(logging.DEBUG)
 # в очереди по ключу будет сообщение насчет обновления данных(в значение будет идентификатор названия папки где лежит
 # zip архив)
 
-def run_model_updater(name_model: str):
-    log.debug("Start create model - %r", name_model)
-    log.debug("Extract zip - %r", name_model)
+def run_model_updater(name_model: tuple):
+    log.debug("Start create model - %r", name_model[1])
+    log.debug("Extract zip - %r", name_model[1])
 
-    extract_zip(join(ZIP_PATH, name_model), IMAGE_PATH)
+    extract_zip(join(ZIP_PATH, name_model[1]), IMAGE_PATH)
 
-    log.debug("Done extract zip - %r", name_model)
-    log.debug("create encoders - %r", name_model)
+    log.debug("Done extract zip - %r", name_model[1])
+    log.debug("create encoders - %r", name_model[1])
 
-    result = get_encoder(join(IMAGE_PATH, name_model), join(ENCODER_PATH, name_model))
+    result = get_encoder(join(IMAGE_PATH, name_model[1]), join(ENCODER_PATH, name_model[1]))
 
-    log.debug("done encoders - %r", name_model)
+    log.debug("done encoders - %r", name_model[1])
     return result

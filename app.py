@@ -20,6 +20,7 @@ from utils.pg import setup_pg
 from helper import Pickler, check_folder_in_path
 
 from facedecoder.manager import run_model_updater
+from db.schema import done_encoders
 
 ENCODERS_PATH = 'facedecoder/temp/encoders'
 api_address = "0.0.0.0"
@@ -38,13 +39,35 @@ pickler = Pickler()
 check_folder_in_path()
 
 
+class CacheManager:
+    def __init__(self):
+        self.cache = aiomcache.Client("127.0.0.1", 11211, pool_size=2)
+
+    async def get(self, key):
+        return await asyncio.wait_for(self.cache.get(key), 0.1)
+
+    async def set(self, key, value):
+        return await asyncio.wait_for(self.cache.set(key, value), 0.1)
+
+
 class EncoderManager:
     def __init__(self):
         self.pickler = Pickler()
         self.encoders = {}
+        self.get_all_encoder_by_hdd_sync()
+
+    def get_all_encoder_by_hdd_sync(self):
         for encoder in listdir(ENCODERS_PATH):
             try:
                 self.encoders[encoder] = self.pickler.sync_pickler(join(ENCODERS_PATH, encoder))
+            except:
+                pass
+
+    async def get_all_encoder_by_hdd_sync_async(self):
+        # TODO проверить работоспособность этого метода
+        for encoder in listdir(ENCODERS_PATH):
+            try:
+                self.encoders[encoder] = await self.pickler.async_pickler(join(ENCODERS_PATH, encoder))
             except:
                 pass
 
@@ -61,28 +84,23 @@ class EncoderManager:
             return False
 
 
-class CacheManager:
-    def __init__(self):
-        self.cache = aiomcache.Client("127.0.0.1", 11211, pool_size=2)
-
-    async def get(self, key):
-        return await asyncio.wait_for(self.cache.get(key), 0.1)
-
-    async def set(self, key, value):
-        return await asyncio.wait_for(self.cache.set(key, value), 0.1)
-
-
-async def task_for_executor(app, name_model: str):
+async def task_for_executor(app, name_model: tuple):
     loop = asyncio.get_event_loop()
+    # TODO добавить проверку на успешное обновление
     result = await loop.run_in_executor(
         app.process_pool,
         run_model_updater, name_model
     )
-    print("ok")
-    # обновляем енкодер
+    # обновляем енкодер только для одной копии приложений.
     app['encoders'].update_encoder_by_uid(
-        name_model, result
+        name_model[1], result
     )
+
+    # пишем в базу что апдейт прошел успешно или нет
+    # TODO добавить поле с успешной записью
+    query = done_encoders.insert().values((name_model[0], name_model[1]))
+    await app['pg'].fetch(query)
+    print('ок')
 
 
 async def input_queue_listener(app):

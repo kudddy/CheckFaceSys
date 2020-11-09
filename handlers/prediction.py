@@ -10,6 +10,8 @@ from PIL import Image
 from io import BytesIO
 
 from .base import BaseView
+from .query import GET_ENCODER_UID
+from db.schema import done_encoders
 from message_schema import PredictImageResp
 
 ENCODER_PATH = "facedecoder/temp/encoders"
@@ -52,9 +54,23 @@ class PredictionHandler(BaseView):
                                                      "персонажа")
     async def get(self):
         try:
+            # обновляем кэш всех копий приложений если контент обновлен
+            can_predict: bool = False
+            # проверяем есть ли в приожении
+            if self.encoders.check_key(self.encoder_uid):
+                can_predict = True
+            else:
+                # проверяем если энкодеры в базе
+                # сделано для синхронизации в случае если запускается несколько копий приложений
+                query = GET_ENCODER_UID.where(done_encoders.c.encoders_uid == self.encoder_uid)
 
-            if self.request.app['encoders'].check_key(self.encoder_uid):
+                result = await self.pg.fetch(query)
 
+                if len(result) > 0:
+                    self.encoder.get_all_encoder_by_hdd_sync_async()
+                    can_predict = True
+
+            if can_predict:
                 reader = await self.request.multipart()
                 # /!\ Don't forget to validate your inputs /!\
 
