@@ -67,7 +67,7 @@ class PredictionHandler(BaseView):
         try:
             # обновляем кэш всех копий приложений если контент обновлен
             can_predict: bool = False
-            # проверяем есть ли в приожении
+            # проверяем есть ли в приложении
             if self.encoders.check_key(self.encoder_uid):
                 can_predict = True
             else:
@@ -78,7 +78,7 @@ class PredictionHandler(BaseView):
                 result = await self.pg.fetch(query)
 
                 if len(result) > 0:
-                    self.encoder.get_all_encoder_by_hdd_sync_async()
+                    self.encoder.get_all_encoder_by_hdd_async()
                     can_predict = True
 
             if can_predict:

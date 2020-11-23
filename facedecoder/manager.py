@@ -18,16 +18,22 @@ log.setLevel(logging.DEBUG)
 # в очереди по ключу будет сообщение насчет обновления данных(в значение будет идентификатор названия папки где лежит
 # zip архив)
 
-def run_model_updater(name_model: tuple):
-    log.debug("Start create model - %r", name_model[1])
-    log.debug("Extract zip - %r", name_model[1])
+def run_model_updater(tech_info_about_model: tuple):
 
-    extract_zip(join(ZIP_PATH, name_model[1]), IMAGE_PATH)
+    token, model_uid = tech_info_about_model
+    log.debug("Start create model - %r", model_uid)
+    log.debug("Extract zip - %r", model_uid)
 
-    log.debug("Done extract zip - %r", name_model[1])
-    log.debug("create encoders - %r", name_model[1])
+    # извлекаем содержимое архива в папку
+    status: bool = extract_zip(join(ZIP_PATH, model_uid), IMAGE_PATH)
+    print(status)
+    if status:
+        log.debug("Done extract zip - %r", model_uid)
+        log.debug("create encoders - %r", model_uid)
 
-    result = get_encoder(join(IMAGE_PATH, name_model[1]), join(ENCODER_PATH, name_model[1]))
+        result: dict = get_encoder(join(IMAGE_PATH, model_uid), join(ENCODER_PATH, model_uid))
 
-    log.debug("done encoders - %r", name_model[1])
-    return result
+        log.debug("done encoders - %r", model_uid)
+        return result
+    else:
+        return {"faces_encoders": [], "faces_mapping": [], "status": status}

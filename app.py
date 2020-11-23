@@ -63,7 +63,7 @@ class EncoderManager:
             except:
                 pass
 
-    async def get_all_encoder_by_hdd_sync_async(self):
+    async def get_all_encoder_by_hdd_async(self):
         # TODO проверить работоспособность этого метода
         for encoder in listdir(ENCODERS_PATH):
             try:
@@ -84,23 +84,26 @@ class EncoderManager:
             return False
 
 
-async def task_for_executor(app, name_model: tuple):
+async def task_for_executor(app, tech_info_about_model: tuple):
+    token, model_uid = tech_info_about_model
     loop = asyncio.get_event_loop()
     # TODO добавить проверку на успешное обновление
     result = await loop.run_in_executor(
         app.process_pool,
-        run_model_updater, name_model
+        run_model_updater, tech_info_about_model
     )
-    # обновляем енкодер только для одной копии приложений.
-    app['encoders'].update_encoder_by_uid(
-        name_model[1], result
-    )
-
     # пишем в базу что апдейт прошел успешно или нет
     # TODO добавить поле с успешной записью
-    query = done_encoders.insert().values((name_model[0], name_model[1]))
-    await app['pg'].fetch(query)
-    print('ок')
+    if result['status']:
+        # обновляем енкодер только для одной копии приложений.
+        app['encoders'].update_encoder_by_uid(
+            model_uid, result
+        )
+        query = done_encoders.insert().values(tech_info_about_model)
+        await app['pg'].fetch(query)
+        log.debug('Job id - %r status: %r', model_uid, True)
+    else:
+        log.debug('Job id - %r status: %r', model_uid, False)
 
 
 async def input_queue_listener(app):

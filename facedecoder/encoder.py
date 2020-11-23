@@ -13,8 +13,10 @@ def get_encoder(image_path: str, encoder_path: str, use_filesystem=True) -> dict
     :param use_filesystem:
     :return:
     """
-    faces_encoders = []
-    faces_mapping = {}
+    faces_encoders: list = []
+    faces_mapping: dict = {}
+    status: bool = True
+
     counter = 0
     for face_count, image_name in enumerate(os.listdir(image_path)):
         try:
@@ -30,18 +32,32 @@ def get_encoder(image_path: str, encoder_path: str, use_filesystem=True) -> dict
         except Exception as e:
             print(e)
 
-    res = {"faces_encoders": faces_encoders, "faces_mapping": faces_mapping}
+    # если словарь пустой, то отправляем отрицательный статус
+    if counter == 0:
+        status = False
+
+    res = {"faces_encoders": faces_encoders, "faces_mapping": faces_mapping, "status": status}
     if use_filesystem:
         with open(encoder_path, 'wb') as f:
             pickle.dump(res, f)
     return res
 
 
-def extract_zip(zip_path: str, image_path: str) -> None:
-    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-        zip_ref.extractall(image_path)
-        members = zip_ref.filename
+def extract_zip(zip_path: str, image_path: str) -> bool:
+    try:
+        status = zipfile.is_zipfile(zip_path)
+        if status:
+            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
 
-        temp = members.split("/")[-1]
+                zip_ref.extractall(image_path)
+                members = zip_ref.filename
 
-        rename(path.join(image_path, "image"), path.join(image_path, temp))
+                temp = members.split("/")[-1]
+
+                rename(path.join(image_path, "image"), path.join(image_path, temp))
+            return True
+        else:
+            return False
+    except Exception as e:
+        print(e)
+        return False
