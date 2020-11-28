@@ -26,7 +26,6 @@ def run_model_updater(tech_info_about_model: tuple):
 
     # извлекаем содержимое архива в папку
     status: bool = extract_zip(join(ZIP_PATH, model_uid), IMAGE_PATH)
-    print(status)
     if status:
         log.debug("Done extract zip - %r", model_uid)
         log.debug("create encoders - %r", model_uid)

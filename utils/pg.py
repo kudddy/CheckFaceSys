@@ -25,8 +25,7 @@ log = logging.getLogger(__name__)
 
 
 async def setup_pg(app: Application) -> PG:
-    db_info = DEFAULT_PG_URL
-    log.info('Connecting to database: %s', db_info)
+    log.info('Connecting to database: %s', DEFAULT_PG_URL)
 
     app['pg'] = PG()
     await app['pg'].init(
@@ -35,14 +34,14 @@ async def setup_pg(app: Application) -> PG:
         max_size=pg_pool_max_size
     )
     await app['pg'].fetchval('SELECT 1')
-    log.info('Connected to database %s', db_info)
+    log.info('Connected to database %s', DEFAULT_PG_URL)
 
     try:
         yield
     finally:
-        log.info('Disconnecting from database %s', db_info)
+        log.info('Disconnecting from database %s', DEFAULT_PG_URL)
         await app['pg'].pool.close()
-        log.info('Disconnected from database %s', db_info)
+        log.info('Disconnected from database %s', DEFAULT_PG_URL)
 
 
 def rounded(column, fraction: int = 2):

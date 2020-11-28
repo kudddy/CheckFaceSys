@@ -40,6 +40,8 @@ class Pickler:
 def check_folder_in_path():
     path = 'facedecoder/temp'
     i = 0
+    if not os.path.exists(path):
+        os.makedirs(path)
     for temp in os.listdir(path):
         if temp in ('encoders', 'image', 'zip'):
             i += 1
