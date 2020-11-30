@@ -41,6 +41,11 @@ docker build -t GroupByFace .
 ```
 docker run  -p 8080:8080 GroupByFace
 ```
+#### Вариант 4
+Запуск группы приложений через docker-compose:
+```
+docker-compose up -d
+```
 
 Приложение доступно по адесу: http://127.0.0.1:8080, который выдаст swagger иструкцию и описание основных методов
 
