@@ -1,4 +1,5 @@
 import logging
+import yaml
 from collections import AsyncIterable
 from pathlib import Path
 
@@ -7,13 +8,13 @@ from asyncpgsa import PG
 from asyncpgsa.transactionmanager import ConnectionTransactionContextManager
 from sqlalchemy import Numeric, cast, func
 from sqlalchemy.sql import Select
-from json import load
 
-with open('utils/secret.json') as json_file:
-    data: dict = load(json_file)
+
+with open('utils/configs_sample.yaml') as f:
+    data: dict = yaml.load(f, Loader=yaml.FullLoader)
 
 CENSORED = '***'
-DEFAULT_PG_URL = data['pg_url']
+DEFAULT_PG_URL = data['APP']['pg']['pg_url']
 MAX_QUERY_ARGS = 32767
 MAX_INTEGER = 2147483647
 

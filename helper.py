@@ -37,13 +37,14 @@ class Pickler:
             pickle.dump(obj, f)
 
 
-def check_folder_in_path():
+def check_folder_in_path() -> None:
+    path_for_create = ('encoders', 'image', 'zip')
     path = 'facedecoder/temp'
     i = 0
     if not os.path.exists(path):
         os.makedirs(path)
     for temp in os.listdir(path):
-        if temp in ('encoders', 'image', 'zip'):
+        if temp in path_for_create:
             i += 1
     if i != 3:
-        [os.makedirs(os.path.join(path, x)) for x in ('encoders', 'image', 'zip')]
+        [os.makedirs(os.path.join(path, x)) for x in path_for_create]

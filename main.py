@@ -1,13 +1,15 @@
 #! /usr/bin/env python
 
 import argparse
+import yaml
 
-from json import load
 from aiohttp.web import run_app
 from app import create_app
 
-with open('utils/secret.json') as json_file:
-    data: dict = load(json_file)
+with open('utils/configs_sample.yaml') as f:
+    data: dict = yaml.load(f, Loader=yaml.FullLoader)
+
+DEBUG: bool = data['APP']['global_configs']['debug']
 
 
 def get_opts():
@@ -18,7 +20,7 @@ def get_opts():
 
 
 if __name__ == '__main__':
-    if data['debug']:
+    if DEBUG:
         app = create_app()
         run_app(app)
     else:

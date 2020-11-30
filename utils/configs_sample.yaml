@@ -1,0 +1,5 @@
+APP:
+  pg:
+    pg_url: postgresql://user:pass@localhost:5434/db
+  global_configs:
+    debug: true
